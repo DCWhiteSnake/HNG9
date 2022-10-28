@@ -14,9 +14,9 @@
                 slackUsername = "David Okeke";
                 backend = true;
                 age = 24;
-                bio = "A software engineer focused on writing back-end code. I use the .NET stack and most recently django" +
-                "to create RESTful Apis, Web applications.My main interest is writing clean-code focusing on " +
-                "predictable styling and design patterns, crafting reusable libraries, writing great unit tests," +
+                bio = "A software engineer focused on writing back-end code. I use the .NET stack and most recently django " +
+                "to create RESTful Api and Web applications. I enjoy writing clean-code, focusing on " +
+                "predictable styling and design patterns, crafting reusable libraries, writing great unit tests." +
                 "I also enjoy data structures and algorithms";
         }
 
