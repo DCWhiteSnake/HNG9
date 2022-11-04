@@ -26,29 +26,46 @@ public class HomeController : ControllerBase
     public async Task<ActionResult<MathematicalOperationResponseModel>> 
         PerformMatematicalOperation([FromBody] MathematicalOperationRequestModel requestModel)
     {
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(
-        new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OPENAI_KEY}");
-        client.DefaultRequestHeaders.Add("User-Agent", "HNG Backend");
+        string? operationString = "";
+        var sanitizedRequestModelOperationType = requestModel.operation_type.ToLower().Trim();
+        requestModel.operation_type = sanitizedRequestModelOperationType;
+
+        if (requestModel.operation_type.Length > 14)
+        {
 
 
-        var operationString = await ProcessOperationTypeAsync(client, requestModel.operation_type);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OPENAI_KEY}");
+            client.DefaultRequestHeaders.Add("User-Agent", "HNG Backend");
+
+
+            operationString = await ProcessOperationTypeAsync(client, requestModel.operation_type);
+        }
+        
+        
+
+        else if(requestModel.operation_type.Length <= 14 && requestModel.operation_type.Length >= 8)
+        {
+            operationString = requestModel.operation_type;
+        }
         var mathematicalModel = new MathematicalOperationModel();
         mathematicalModel.x = requestModel.x;
         mathematicalModel.y = requestModel.y;
         
+      
         switch (operationString)
         {
-            case "Addition":
+            case "addition":
                 mathematicalModel.operation_type = OperationType.addition;
                 break;
 
-            case "Subtraction":
+            case "subtraction":
                 mathematicalModel.operation_type = OperationType.subtraction;
                 break;
 
-            case "Multiplication":
+            case "multiplication":
                 mathematicalModel.operation_type = OperationType.multiplication;
                 break;
             default:
@@ -57,7 +74,7 @@ public class HomeController : ControllerBase
         mathematicalModel.PerformOperation();
 
 
-        var response = new MathematicalOperationResponseModel() { result = mathematicalModel.result, operation_type = mathematicalModel.operation_type };
+        var response = new MathematicalOperationResponseModel() { result = mathematicalModel.result, operation_type = mathematicalModel.operation_type.ToString() };
 
         return Ok(response);
     }
@@ -65,9 +82,7 @@ public class HomeController : ControllerBase
     public async Task<string?> ProcessOperationTypeAsync(HttpClient client, string operation_string)
     {
         var requestdata = new OpenAIRequestModel();
-        requestdata.prompt =$"Convert this text to a single mathematical operation. Output should be one of Addition, Substitution," +
-            $" Multiplication\nExample = Alli goes to school and was asked to find the solution of 2 * 2\nOutput: Multiplication\n\n" +
-            $"Example = Add them together\nOutput: Addition\n\nExample = Subtract x from y\nOutput: Subtraction\n\n{ operation_string}\".";
+        requestdata.prompt =$"Convert this text to a single mathematical operation. Output should be one of Addition, Subtraction, Multiplication:\n\nExample: Alli goes to school and was asked to find the solution of 2 * 2\nOutput: Multiplication\n\nExample: Add them together\nOutput: Addition\n\nExample: Subtraction\nOutput: Subtraction\n\n\"{operation_string}\".";
 
         var stringContent = new StringContent(JsonConvert.SerializeObject(requestdata), Encoding.UTF8, "application/json");
         string x = await stringContent.ReadAsStringAsync();
@@ -76,7 +91,7 @@ public class HomeController : ControllerBase
         var resJson = await res.Content.ReadAsStringAsync();
         var openApiResponse = JsonConvert.DeserializeObject<openAIResponseModel>(resJson);
         
-        var sanitizedResponse = openApiResponse.choices[0].text.Trim().Replace("Output: ", "");
+        var sanitizedResponse = openApiResponse.choices[0].text.Trim().Replace("Output: ", "").ToLower();
         return sanitizedResponse;
 
     }

@@ -11,6 +11,6 @@ namespace BackendStageTwo.Models
         public int y { get; set; }
 
         [Required]
-        public string operation_type { get; set; }
+        public string? operation_type { get; set; }
     }
 }
